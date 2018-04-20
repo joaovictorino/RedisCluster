@@ -28,14 +28,14 @@ var locationSet = {
     if(err) console.error(err)
     else console.log('added locations:', reply)
     count++;
-    if(count == 3) redis.disconnect();
+    disconnectRedis();
   });
 
   geo.location('Toronto', function(err, location){
     if(err) console.error(err)
     else console.log('Location for Toronto is: ', location.latitude, location.longitude)
     count++;
-    if(count == 3) redis.disconnect();
+    disconnectRedis();
   });
 
   redis.hset('datelocation', 'Toronto', new Date().toLocaleString());
@@ -44,5 +44,34 @@ var locationSet = {
     if(err) console.error(err)
     else console.log('Toronto is: ', res)
     count++;
-    if(count == 3) redis.disconnect();
+    disconnectRedis();
   });
+
+  geo.addLocation('Toronto', {latitude: 44.66678, longitude: -79.4167}, function(err, reply){
+    geo.location('Toronto', function(err, location){
+      if(err) console.error(err)
+      else console.log('Location for Toronto is now: ', location.latitude, location.longitude)
+      count++;
+      disconnectRedis();
+    });
+  });
+
+  var options = {
+    withCoordinates: true, // Will provide coordinates with locations, default false
+    withDistances: true, // Will provide distance from query, default false
+    order: 'ASC', // or 'DESC' or true (same as 'ASC'), default false
+    units: 'km', // or 'km', 'mi', 'ft', default 'm'
+    count: 500 // Number of results to return, default undefined
+  }
+  
+  // look for all points within ~5000m of Toronto with the options.
+  geo.nearby({latitude: 43.646838, longitude: -79.403723}, 700, options, function(err, locations){
+      if(err) console.error(err)
+      else console.log('nearby locations:', locations)
+      count++;
+  });
+
+  function disconnectRedis()
+  {
+    if(count == 5) redis.disconnect();
+  }
